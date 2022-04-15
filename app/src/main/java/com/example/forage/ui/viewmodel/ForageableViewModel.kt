@@ -15,9 +15,8 @@
  */
 package com.example.forage.ui.viewmodel
 
-import androidx.lifecycle.ViewModel
-import androidx.lifecycle.ViewModelProvider
-import androidx.lifecycle.viewModelScope
+import android.util.Log
+import androidx.lifecycle.*
 import com.example.forage.data.ForageableDao
 import com.example.forage.model.Forageable
 import kotlinx.coroutines.Dispatchers
@@ -30,13 +29,21 @@ import kotlinx.coroutines.launch
 
 // TODO: pass a ForageableDao value as a parameter to the view model constructor
 class ForageableViewModel(
-    // Pass dao here
+    private val forageableDao: ForageableDao
 ): ViewModel() {
 
     // TODO: create a property to set to a list of all forageables from the DAO
+    val forageables = forageableDao.getAllForage()
 
+    private val _forageable = MutableLiveData<Forageable>()
+    val forageable: LiveData<Forageable> get() = _forageable
     // TODO : create method that takes id: Long as a parameter and retrieve a Forageable from the
     //  database by id via the DAO.
+    fun getForageableById(id: Long){
+        viewModelScope.launch(Dispatchers.IO){
+            _forageable.postValue(forageableDao.getForageById(id))
+        }
+    }
 
     fun addForageable(
         name: String,
@@ -52,7 +59,13 @@ class ForageableViewModel(
         )
 
     // TODO: launch a coroutine and call the DAO method to add a Forageable to the database within it
+        viewModelScope.launch(Dispatchers.IO){
+            try {
+                forageableDao.addForage(forageable)
+            } catch (e: Exception){
 
+            }
+        }
     }
 
     fun updateForageable(
@@ -71,12 +84,14 @@ class ForageableViewModel(
         )
         viewModelScope.launch(Dispatchers.IO) {
             // TODO: call the DAO method to update a forageable to the database here
+            forageableDao.updateForage(forageable)
         }
     }
 
     fun deleteForageable(forageable: Forageable) {
         viewModelScope.launch(Dispatchers.IO) {
             // TODO: call the DAO method to delete a forageable to the database here
+            forageableDao.deleteForage(forageable)
         }
     }
 
@@ -87,3 +102,12 @@ class ForageableViewModel(
 
 // TODO: create a view model factory that takes a ForageableDao as a property and
 //  creates a ForageableViewModel
+class ForageableViewModelFactory(private val forageableDao: ForageableDao): ViewModelProvider.Factory{
+    override fun <T : ViewModel> create(modelClass: Class<T>): T {
+        @Suppress("UNCHECKED_CAST")
+        if (modelClass.isAssignableFrom(ForageableViewModel::class.java)){
+            return ForageableViewModel(forageableDao) as T
+        }
+        throw IllegalArgumentException("Wrong ViewModel")
+    }
+}

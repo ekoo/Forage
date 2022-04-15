@@ -15,7 +15,9 @@
  */
 package com.example.forage.data
 
-import androidx.room.Dao
+import androidx.lifecycle.LiveData
+import androidx.room.*
+import com.example.forage.model.Forageable
 
 /**
  * Data Access Object for database interaction.
@@ -24,13 +26,23 @@ import androidx.room.Dao
 interface ForageableDao {
 
     // TODO: implement a method to retrieve all Forageables from the database
+    @Query("SELECT * FROM forage")
+    fun getAllForage(): LiveData<List<Forageable>>
 
     // TODO: implement a method to retrieve a Forageable from the database by id
+    @Query("SELECT * FROM forage WHERE id = :forageId LIMIT 1")
+    suspend fun getForageById(forageId: Long) : Forageable
 
     // TODO: implement a method to insert a Forageable into the database
     //  (use OnConflictStrategy.REPLACE)
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun addForage(forage: Forageable)
 
     // TODO: implement a method to update a Forageable that is already in the database
+    @Update
+    suspend fun updateForage(forage: Forageable)
 
     // TODO: implement a method to delete a Forageable from the database.
+    @Delete
+    suspend fun deleteForage(forage: Forageable)
 }
